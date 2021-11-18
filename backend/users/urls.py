@@ -1,7 +1,7 @@
-# from rest_framework.authtoken import views
-# from django.urls import path
+from django.urls import include, path
 
 
-# urlpatterns = [
-#     path('token/login/', views.obtain_auth_token),
-# ]
+urlpatterns = [
+    path('', include('djoser.urls')),
+    path('auth/', include('djoser.urls.authtoken')),
+]

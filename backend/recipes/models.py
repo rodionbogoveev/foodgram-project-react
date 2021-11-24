@@ -1,6 +1,7 @@
 from colorfield.fields import ColorField
 from django.core.validators import MinValueValidator
 from django.db import models
+
 from users.models import User
 
 
@@ -32,7 +33,7 @@ class Tag(models.Model):
                             unique=True,)
 
     def __str__(self):
-        return self.slug
+        return f'{self.name} ({self.slug})'
 
     class Meta:
         verbose_name = 'Тег'
@@ -81,17 +82,17 @@ class IngredientRecipe(models.Model):
                                verbose_name='Рецепт',
                                on_delete=models.CASCADE,
                                related_name='ingredient_recipe')
-    amount = models.PositiveSmallIntegerField(
+    amount = models.FloatField(
         verbose_name='Количество игредиента',
         validators=[MinValueValidator(
-                    1, message='Минимальное количество ингредиента - 1')])
+                    0, message='Минимальное количество ингредиента - 0')])
 
     def __str__(self):
-        return f'Ингредиент - {self.ingredient}, рецепт - {self.recipe}'
+        return f'{self.recipe}: {self.ingredient}'
 
     class Meta:
         verbose_name = 'Ингредиент в рецепте'
-        verbose_name_plural = 'Ингредиенты и рецепте'
+        verbose_name_plural = 'Ингредиенты и рецепты'
         constraints = [models.UniqueConstraint(
             fields=['ingredient', 'recipe'],
             name='unique_ingredient')]
@@ -153,7 +154,7 @@ class ShoppingCart(models.Model):
                                related_name='shopping_cart',)
 
     def __str__(self):
-        return f'У {self.user} рецепт {self.recipe} в списке покупок'
+        return f'Пользователь - "{self.user}", рецепт - "{self.recipe}"'
 
     class Meta:
         verbose_name = 'Список покупок'

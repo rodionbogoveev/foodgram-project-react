@@ -1,10 +1,11 @@
+from djoser.serializers import UserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from users.models import Follow, User
 
 
-class UserSerializer(serializers.ModelSerializer):
+class CustomUserSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -13,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
 
     def get_is_subscribed(self, obj):
-        request = self.context['request']
-        user = request.user.pk
-        follower = obj.pk
-        return Follow.objects.filter(user=user, follower=follower).exists()
+        user = self.context['request'].user
+        if user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=user, follower=obj.pk).exists()

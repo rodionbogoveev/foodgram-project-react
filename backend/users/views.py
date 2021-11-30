@@ -5,12 +5,12 @@ from rest_framework.response import Response
 
 # from api.permissions import UserOrReadOnly
 from .models import User
-from .serializers import CustomUserSerializer
+from .serializers import UserSerializer
 
 
 class CustomUserViewSet(views.UserViewSet):
     queryset = User.objects.all()
-    serializer_class = CustomUserSerializer
+    serializer_class = UserSerializer
 
     # def get_permission(self):
     #     user = self.context['request'].user

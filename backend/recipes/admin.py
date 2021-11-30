@@ -20,6 +20,7 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = (IngredientRecipeInline, TagRecipeInline)
     list_display = ('author', 'name')
     list_filter = ('author', 'tags')
+    ordering = ('-id',)
 
 
 class IngredientRecipeIAdmin(admin.ModelAdmin):

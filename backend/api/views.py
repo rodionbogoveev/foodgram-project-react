@@ -29,3 +29,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    # def create(self, request):
+    #     data = request.data
+    #     new_recipe = Recipe.objects.create(
+
+    #     )

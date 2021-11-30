@@ -5,7 +5,7 @@ from rest_framework.validators import UniqueValidator
 from users.models import Follow, User
 
 
-class CustomUserSerializer(UserSerializer):
+class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:

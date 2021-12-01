@@ -1,6 +1,7 @@
 from recipes.models import Ingredient, Recipe, Tag
-from rest_framework import filters, viewsets
+from rest_framework import filters, permissions, viewsets
 
+from .permissions import AuthorOrReadOnly
 from .serializers import IngredientSerializer, RecipeSerializer, TagSerializer
 
 
@@ -22,16 +23,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
 
-    # def get_serializer_class(self):
-    #     if self.action in ('retrieve', 'list'):
-    #         return ReadOnlyRecipeSerializer
-    #     return RecipeSerializer
+    def get_permissions(self):
+        if self.action in ('update', 'destroy'):
+            return (AuthorOrReadOnly(),)
+        return super().get_permissions()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-
-    # def create(self, request):
-    #     data = request.data
-    #     new_recipe = Recipe.objects.create(
-
-    #     )

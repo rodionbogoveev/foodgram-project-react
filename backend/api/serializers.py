@@ -4,7 +4,7 @@ from rest_framework.serializers import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
-                            ShoppingCart, Tag, TagRecipe)
+                            ShoppingCart, Tag)
 from users.serializers import UserSerializer
 
 
@@ -96,15 +96,26 @@ class RecipeSerializer(serializers.ModelSerializer):
             raise ValidationError('Минимальное время приготовления - 1 мин.')
         return data
 
-    def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        tags = validated_data.pop('tags')
-        # после validate изменить initial_data на validated_data
-        recipe = Recipe.objects.create(**validated_data)
+    def create_ingredients(self, recipe, ingredients):
         for ingredient in ingredients:
             IngredientRecipe.objects.create(
                 recipe=recipe,
                 ingredient_id=ingredient.get('id'),
                 amount=ingredient.get('amount'))
+
+    def create(self, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        recipe = Recipe.objects.create(**validated_data)
+        self.create_ingredients(recipe, ingredients)
         recipe.tags.set(tags)
+        return recipe
+
+    def update(self, request, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        recipe = Recipe.objects.get(pk=request.id)
+        recipe.ingredients.clear()
+        recipe.tags.set(tags)
+        self.create_ingredients(recipe, ingredients)
         return recipe

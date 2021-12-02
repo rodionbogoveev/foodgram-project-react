@@ -139,9 +139,7 @@ class FollowSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('email', 'id', 'username', 'first_name', 'last_name',
-                  'is_subscribed', 'recipes', 
-                  'recipes_count'
-                  )
+                  'is_subscribed', 'recipes', 'recipes_count')
         model = Follow
 
     def get_is_subscribed(self, obj):

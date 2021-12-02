@@ -1,8 +1,8 @@
 from django.urls import include, path
 from djoser import views
+from rest_framework.routers import DefaultRouter
 
 from .views import CustomUserViewSet
-from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register('users', CustomUserViewSet)

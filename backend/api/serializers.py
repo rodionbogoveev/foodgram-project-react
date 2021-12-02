@@ -38,6 +38,12 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
         ]
 
 
+class LowerRecipeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     ingredients = IngredientRecipeSerializer(
@@ -51,10 +57,9 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = (
-            'id', 'tags', 'author', 'ingredients', 'is_favorited',
-            # 'image'
-            'is_in_shopping_cart', 'name', 'text', 'cooking_time')
+        fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
+                  # 'image'
+                  'is_in_shopping_cart', 'name', 'text', 'cooking_time')
 
     def get_is_favorited(self, obj):
         request = self.context['request']

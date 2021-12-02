@@ -5,7 +5,8 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             ShoppingCart, Tag)
-from users.serializers import UserSerializer
+from users.models import Follow
+from users.serializers import CustomUserSerializer
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -51,7 +52,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True,
     )
-    author = UserSerializer(read_only=True)
+    author = CustomUserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -124,3 +125,34 @@ class RecipeSerializer(serializers.ModelSerializer):
         recipe.tags.set(tags)
         self.create_ingredients(recipe, ingredients)
         return recipe
+
+
+class FollowSerializer(serializers.ModelSerializer):
+    email = serializers.ReadOnlyField(source='user.email')
+    id = serializers.ReadOnlyField(source='user.id')
+    username = serializers.ReadOnlyField(source='user.username')
+    first_name = serializers.ReadOnlyField(source='user.first_name')
+    last_name = serializers.ReadOnlyField(source='user.last_name')
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',
+                  'is_subscribed', 'recipes', 
+                  'recipes_count'
+                  )
+        model = Follow
+
+    def get_is_subscribed(self, obj):
+        user = self.context.get('request').user
+        follower = obj.user
+        return Follow.objects.filter(user=user, follower=follower).exists()
+
+    def get_recipes(self, obj):
+        recipes = Recipe.objects.filter(author=obj.user)
+        serializer = LowerRecipeSerializer(recipes, many=True)
+        return serializer.data
+
+    def get_recipes_count(self, obj):
+        return Recipe.objects.filter(author=obj.user).count()

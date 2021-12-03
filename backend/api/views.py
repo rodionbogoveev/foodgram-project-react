@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -27,6 +28,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+    filter_backends = (DjangoFilterBackend,)
 
     def get_permissions(self):
         if self.action in ('update', 'destroy'):
@@ -42,7 +44,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             return self.add_recipe(Favorite, request.user, pk)
         elif request.method == 'DELETE':
-            return self.delete_recipe(Favorite, request.user, pk)
+            return self.del_recipe(Favorite, request.user, pk)
 
     @action(detail=True, methods=['get', 'delete'],
             permission_classes=[permissions.IsAuthenticated])
@@ -50,7 +52,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             return self.add_recipe(ShoppingCart, request.user, pk)
         elif request.method == 'DELETE':
-            return self.delete_recipe(ShoppingCart, request.user, pk)
+            return self.del_recipe(ShoppingCart, request.user, pk)
 
     def add_recipe(self, model, user, pk):
         recipe = get_object_or_404(Recipe, pk=pk)
@@ -68,7 +70,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer = LowerRecipeSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def delete_recipe(self, model, user, pk):
+    def del_recipe(self, model, user, pk):
         recipe = get_object_or_404(Recipe, pk=pk)
         if model.objects.filter(user=user, recipe=recipe).exists():
             model.objects.filter(user=user, recipe=recipe).delete()

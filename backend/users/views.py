@@ -1,5 +1,6 @@
+from django.shortcuts import get_object_or_404
 from djoser import views
-from rest_framework import permissions
+from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -21,7 +22,47 @@ class CustomUserViewSet(views.UserViewSet):
 
     @action(detail=False, permission_classes=[permissions.IsAuthenticated])
     def subscriptions(self, request):
-        followers = Follow.objects.filter(follower=request.user)
+        queryset = Follow.objects.filter(follower=request.user)
+        page = self.paginate_queryset(queryset)
         serializer = FollowSerializer(
-            followers, many=True, context={'request': request})
-        return Response(serializer.data)
+            page, many=True, context={'request': request})
+        return self.get_paginated_response(serializer.data)
+
+    @action(methods=['get', 'delete'], detail=True,
+            permission_classes=[permissions.IsAuthenticated])
+    def subscribe(self, request, id):
+        if request.method == 'GET':
+            return self.add_subscribe(Follow, request, id)
+        elif request.method == 'DELETE':
+            return self.del_subscribe(Follow, request, id)
+
+    def add_subscribe(self, model, request, id):
+        follower = request.user
+        user = get_object_or_404(User, id=id)
+        if user == follower:
+            return Response(
+                {'errors': 'Вы не можете подписаться на самого себя.'},
+                status=status.HTTP_400_BAD_REQUEST)
+        elif model.objects.filter(user=user, follower=follower).exists():
+            return Response(
+                {'errors': 'Вы уже подписаны на этого пользователя.'},
+                status=status.HTTP_400_BAD_REQUEST)
+        else:
+            follow = model.objects.create(user=user, follower=follower)
+            serializer = FollowSerializer(follow, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def del_subscribe(self, model, request, id):
+        follower = request.user
+        user = get_object_or_404(User, id=id)
+        if user == follower:
+            return Response(
+                {'errors': 'Вы не можете отписаться от самого себя.'},
+                status=status.HTTP_400_BAD_REQUEST)
+        elif model.objects.filter(user=user, follower=follower).exists():
+            model.objects.filter(user=user, follower=follower).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(
+                {'errors': 'Вы не подписаны на этого пользователя.'},
+                status=status.HTTP_400_BAD_REQUEST)

@@ -6,6 +6,7 @@ from rest_framework.response import Response
 
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 
+from .filters import IngredientSearchFilter, RecipeFilter
 from .permissions import AuthorOrReadOnly
 from .serializers import (IngredientSerializer, LowerRecipeSerializer,
                           RecipeSerializer, TagSerializer)
@@ -15,7 +16,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (IngredientSearchFilter,)
     search_fields = ('^name',)
 
 
@@ -29,11 +30,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
 
     def get_permissions(self):
         if self.action in ('update', 'destroy'):
             return (AuthorOrReadOnly(),)
         return super().get_permissions()
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not self.request.user.is_authenticated:
+            return qs
+        if 'is_favorited' in self.request.query_params:
+            qs = qs.filter(favorite__user=self.request.user)
+        if 'is_in_shopping_cart' in self.request.query_params:
+            qs = qs.filter(shopping_cart__user=self.request.user)
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

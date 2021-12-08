@@ -1,3 +1,7 @@
+import uuid
+from base64 import b64decode
+
+from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
@@ -45,22 +49,36 @@ class LowerRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
+class ImageSerializer(serializers.ImageField):
+    def to_internal_value(self, data):
+        if 'data:' in data and ';base64,' in data:
+            header, data = data.split(';base64,')
+        try:
+            image = b64decode(data)
+        except TypeError:
+            raise ValidationError('Invalid image')
+        image_name = str(uuid.uuid4())[:12] + '.jpg'
+        data = ContentFile(image, name=image_name)
+        return super().to_internal_value(data)
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
+    author = CustomUserSerializer(read_only=True)
     ingredients = IngredientRecipeSerializer(
         source='ingredient_recipe',
         many=True,
         read_only=True,
     )
-    author = CustomUserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
+    image = ImageSerializer(max_length=None, use_url=True)
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
-                  # 'image'
-                  'is_in_shopping_cart', 'name', 'text', 'cooking_time')
+        fields = ('id', 'tags', 'author', 'ingredients',
+                  'is_favorited', 'is_in_shopping_cart',
+                  'name', 'image', 'text', 'cooking_time')
 
     def get_is_favorited(self, obj):
         request = self.context['request']
@@ -90,15 +108,15 @@ class RecipeSerializer(serializers.ModelSerializer):
             raise ValidationError('Укажите хотя бы один ингредиент.')
         for ingredient in ingredients:
             get_object_or_404(Ingredient, pk=ingredient['id'])
-            if ingredient['amount'] < 1:
-                raise ValidationError('Минимальное количество игредиента - 1.')
+            if int(ingredient['amount']) < 0:
+                raise ValidationError('Минимальное количество игредиента - 0.')
             if ingredient in ingredients_list:
                 raise ValidationError('Ингредиенты не должны повторяться.')
             ingredients_list.append(ingredient)
         data['ingredients'] = ingredients_list
 
         cooking_time = self.initial_data.get('cooking_time')
-        if cooking_time < 1:
+        if int(cooking_time) < 1:
             raise ValidationError('Минимальное время приготовления - 1 мин.')
         return data
 
@@ -124,7 +142,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         recipe.ingredients.clear()
         recipe.tags.set(tags)
         self.create_ingredients(recipe, ingredients)
-        return recipe
+        return super().update(recipe, validated_data)
 
 
 class FollowSerializer(serializers.ModelSerializer):

@@ -1,14 +1,14 @@
-from django_filters import rest_framework as filters
+from django_filters.rest_framework import filters, FilterSet
 from rest_framework.filters import SearchFilter
 
 from recipes.models import Recipe
 
 
-class RecipeFilter(filters.FilterSet):
+class RecipeFilter(FilterSet):
     author = filters.CharFilter(
         field_name='author__id'
     )
-    tags = filters.CharFilter(
+    tags = filters.AllValuesMultipleFilter(
         field_name='tags__slug'
     )
 

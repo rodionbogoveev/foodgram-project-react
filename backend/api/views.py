@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -10,6 +10,7 @@ from .filters import IngredientSearchFilter, RecipeFilter
 from .permissions import AuthorOrReadOnly
 from .serializers import (IngredientSerializer, LowerRecipeSerializer,
                           RecipeSerializer, TagSerializer)
+from .utility import create_txt
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -96,3 +97,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 return Response(
                     {'errors': 'Рецепта нет в списке покупок.'},
                     status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False,
+            permission_classes=[permissions.IsAuthenticated])
+    def download_shopping_cart(self, request):
+        return create_txt(request)

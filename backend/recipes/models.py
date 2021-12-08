@@ -85,7 +85,7 @@ class IngredientRecipe(models.Model):
     amount = models.IntegerField(
         verbose_name='Количество игредиента',
         validators=[MinValueValidator(
-                    1, message='Минимальное количество ингредиента - 1')])
+                    0, message='Минимальное количество ингредиента - 0')])
 
     def __str__(self):
         return f'{self.recipe}: {self.ingredient}'

@@ -1,4 +1,4 @@
-version: '3.0'
+version: '3.8'
 
 services:
 
@@ -10,8 +10,9 @@ services:
       - .env
 
   web:
-    image: rodionbogoveev/foodgram_web:v1.0
-    restart: always
+    # image: rodionbogoveev/foodgram_web:v1.0
+    # restart: always
+    build: ../backend
     volumes:
       - static_value:/code/static/
       - media_value:/code/media/

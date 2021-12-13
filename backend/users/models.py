@@ -3,18 +3,15 @@ from django.db import models
 
 
 class User(AbstractUser):
-    email = models.EmailField(verbose_name='Адрес электронной почты',
-                              max_length=254,
-                              unique=True,)
-    username = models.CharField(verbose_name='Юзернейм',
-                                max_length=150,
-                                unique=True,)
-    first_name = models.CharField(verbose_name='Имя',
-                                  max_length=150,)
-    last_name = models.CharField(verbose_name='Фамилия',
-                                 max_length=150,)
-    password = models.CharField(verbose_name='Пароль',
-                                max_length=150,)
+    """Модель пользователя."""
+
+    email = models.EmailField(
+        max_length=254,
+        unique=True,
+    )
+    password = models.CharField(
+        max_length=150,
+    )
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'password']
@@ -26,20 +23,28 @@ class User(AbstractUser):
 
 
 class Follow(models.Model):
-    user = models.ForeignKey(User,
-                             verbose_name='Автор',
-                             on_delete=models.CASCADE,
-                             related_name='follow_author')
-    follower = models.ForeignKey(User,
-                                 verbose_name='Подписчик',
-                                 on_delete=models.CASCADE,
-                                 related_name='follower')
+    """Модель подписок."""
+
+    user = models.ForeignKey(
+        User,
+        verbose_name='Автор',
+        on_delete=models.CASCADE,
+        related_name='follow_author',
+    )
+    follower = models.ForeignKey(
+        User,
+        verbose_name='Подписчик',
+        on_delete=models.CASCADE,
+        related_name='follower',
+    )
 
     class Meta:
         ordering = ['-id']
         verbose_name = 'Подписки'
         verbose_name_plural = 'Подписки'
-        constraints = [models.UniqueConstraint(
-            fields=['user', 'follower'],
-            name='unique_user_follower')]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'follower'], name='unique_user_follower'
+            )
+        ]
         unique_together = ['user', 'follower']

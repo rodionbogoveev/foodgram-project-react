@@ -1,8 +1,10 @@
-from django.shortcuts import get_object_or_404
 from djoser import views
+
+from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.serializers import ValidationError
 
 from api.serializers import FollowSerializer
 
@@ -25,11 +27,15 @@ class CustomUserViewSet(views.UserViewSet):
         queryset = Follow.objects.filter(follower=request.user)
         page = self.paginate_queryset(queryset)
         serializer = FollowSerializer(
-            page, many=True, context={'request': request})
+            page, many=True, context={'request': request}
+        )
         return self.get_paginated_response(serializer.data)
 
-    @action(methods=['get', 'delete'], detail=True,
-            permission_classes=[permissions.IsAuthenticated])
+    @action(
+        methods=['get', 'delete'],
+        detail=True,
+        permission_classes=[permissions.IsAuthenticated],
+    )
     def subscribe(self, request, id):
         if request.method == 'GET':
             return self.add_subscribe(Follow, request, id)
@@ -40,29 +46,27 @@ class CustomUserViewSet(views.UserViewSet):
         follower = request.user
         user = get_object_or_404(User, id=id)
         if user == follower:
-            return Response(
-                {'errors': 'Вы не можете подписаться на самого себя.'},
-                status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError(
+                {'errors': 'Вы не можете подписаться на самого себя.'}
+            )
         elif model.objects.filter(user=user, follower=follower).exists():
-            return Response(
-                {'errors': 'Вы уже подписаны на этого пользователя.'},
-                status=status.HTTP_400_BAD_REQUEST)
-        else:
-            follow = model.objects.create(user=user, follower=follower)
-            serializer = FollowSerializer(follow, context={'request': request})
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            raise ValidationError(
+                {'errors': 'Вы уже подписаны на этого пользователя.'}
+            )
+        follow = model.objects.create(user=user, follower=follower)
+        serializer = FollowSerializer(follow, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def del_subscribe(self, model, request, id):
         follower = request.user
         user = get_object_or_404(User, id=id)
         if user == follower:
-            return Response(
-                {'errors': 'Вы не можете отписаться от самого себя.'},
-                status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError(
+                {'errors': 'Вы не можете отписаться от самого себя.'}
+            )
         elif model.objects.filter(user=user, follower=follower).exists():
             model.objects.filter(user=user, follower=follower).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(
-                {'errors': 'Вы не подписаны на этого пользователя.'},
-                status=status.HTTP_400_BAD_REQUEST)
+        raise ValidationError(
+            {'errors': 'Вы не подписаны на этого пользователя.'}
+        )

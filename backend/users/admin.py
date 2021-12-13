@@ -9,8 +9,14 @@ TokenAdmin.raw_id_fields = ['user']
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'email', 'username', 'first_name',
-                    'last_name', 'is_staff')
+    list_display = (
+        'id',
+        'email',
+        'username',
+        'first_name',
+        'last_name',
+        'is_staff',
+    )
     search_fields = ('username', 'first_name', 'last_name')
     empty_value_display = '-пусто-'
     list_filter = ('email', 'first_name')

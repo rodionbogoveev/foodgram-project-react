@@ -1,14 +1,12 @@
-import uuid
-from base64 import b64decode
+from drf_extra_fields.fields import Base64ImageField
 
-from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
-                            ShoppingCart, Tag)
+                            ShoppingCart, Tag,)
 from users.models import Follow
 from users.serializers import CustomUserSerializer
 
@@ -38,7 +36,7 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
         validators = [
             UniqueTogetherValidator(
                 queryset=IngredientRecipe.objects.all(),
-                fields=['ingredient', 'recipe']
+                fields=['ingredient', 'recipe'],
             )
         ]
 
@@ -49,20 +47,7 @@ class LowerRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class ImageSerializer(serializers.ImageField):
-    def to_internal_value(self, data):
-        if 'data:' in data and ';base64,' in data:
-            header, data = data.split(';base64,')
-        try:
-            image = b64decode(data)
-        except TypeError:
-            raise ValidationError('Invalid image')
-        image_name = str(uuid.uuid4())[:12] + '.jpg'
-        data = ContentFile(image, name=image_name)
-        return super().to_internal_value(data)
-
-
-class RecipeSerializer(serializers.ModelSerializer):
+class ReadOnlyRecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
     ingredients = IngredientRecipeSerializer(
@@ -72,13 +57,22 @@ class RecipeSerializer(serializers.ModelSerializer):
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-    image = ImageSerializer(max_length=None, use_url=True)
+    image = serializers.ImageField()
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients',
-                  'is_favorited', 'is_in_shopping_cart',
-                  'name', 'image', 'text', 'cooking_time')
+        fields = (
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
+            'name',
+            'image',
+            'text',
+            'cooking_time',
+        )
 
     def get_is_favorited(self, obj):
         request = self.context['request']
@@ -91,6 +85,25 @@ class RecipeSerializer(serializers.ModelSerializer):
         user = request.user.pk
         recipe = obj.pk
         return ShoppingCart.objects.filter(user=user, recipe=recipe).exists()
+
+
+class RecipeSerializer(ReadOnlyRecipeSerializer):
+    image = Base64ImageField()
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
+            'name',
+            'image',
+            'text',
+            'cooking_time',
+        )
 
     def validate(self, data):
         tags = self.initial_data.get('tags')
@@ -125,7 +138,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             IngredientRecipe.objects.create(
                 recipe=recipe,
                 ingredient_id=ingredient.get('id'),
-                amount=ingredient.get('amount'))
+                amount=ingredient.get('amount'),
+            )
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
@@ -156,8 +170,16 @@ class FollowSerializer(serializers.ModelSerializer):
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('email', 'id', 'username', 'first_name', 'last_name',
-                  'is_subscribed', 'recipes', 'recipes_count')
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count',
+        )
         model = Follow
 
     def get_is_subscribed(self, obj):

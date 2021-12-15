@@ -49,31 +49,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return create_txt(request)
 
 
-@api_view(['GET', 'DELETE'])
-@permission_classes([permissions.IsAuthenticated])
-def favorite(request, pk):
-    return get_method(request, pk)
-
-
-@api_view(['GET', 'DELETE'])
-@permission_classes([permissions.IsAuthenticated])
-def shopping_cart(request, pk):
-    return get_method(request, pk)
-
-
-def get_method(request, pk):
-    if request.method == 'GET':
-        if 'shopping_cart' in request.path:
-            return add_recipe(ShoppingCart, request.user, pk)
-        elif 'favorite' in request.path:
-            return add_recipe(Favorite, request.user, pk)
-    elif request.method == 'DELETE':
-        if 'shopping_cart' in request.path:
-            return del_recipe(ShoppingCart, request.user, pk)
-        elif 'favorite' in request.path:
-            return del_recipe(Favorite, request.user, pk)
-
-
 def add_recipe(model, user, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
     if model.objects.filter(user=user, recipe=recipe).exists():
@@ -109,3 +84,21 @@ def del_recipe(model, user, pk):
                 {'errors': 'Рецепта нет в списке покупок.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+@api_view(['GET', 'DELETE'])
+@permission_classes([permissions.IsAuthenticated])
+def favorite(request, pk):
+    if request.method == 'GET':
+        return add_recipe(Favorite, request.user, pk)
+    elif request.method == 'DELETE':
+        return del_recipe(Favorite, request.user, pk)
+
+
+@api_view(['GET', 'DELETE'])
+@permission_classes([permissions.IsAuthenticated])
+def shopping_cart(request, pk):
+    if request.method == 'GET':
+        return add_recipe(ShoppingCart, request.user, pk)
+    elif request.method == 'DELETE':
+        return del_recipe(ShoppingCart, request.user, pk)

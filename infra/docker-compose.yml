@@ -10,9 +10,9 @@ services:
       - .env
 
   web:
-    # image: rodionbogoveev/foodgram_web:v1.0
-    # restart: always
-    build: ../backend
+    image: rodionbogoveev/foodgram_web:v1.0
+    restart: always
+    # build: ../backend
     volumes:
       - static_value:/code/static/
       - media_value:/code/media/

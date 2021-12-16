@@ -71,6 +71,7 @@ jobs:
           script: |
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_web:v1.0
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:v1.0
+            cd foodgram/
             sudo docker-compose stop
             sudo docker-compose rm web
             rm .env

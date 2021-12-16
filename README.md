@@ -1,9 +1,22 @@
+[![Foodgram workflow](https://github.com/rodionbogoveev/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)](https://github.com/rodionbogoveev/foodgram-project-react/actions/workflows/foodgram_workflow.yml)
+
+[![Python](https://img.shields.io/badge/-Python-464646?style=flat-square&logo=Python)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/-Django-464646?style=flat-square&logo=Django)](https://www.djangoproject.com/)
+[![Django REST Framework](https://img.shields.io/badge/-Django%20REST%20Framework-464646?style=flat-square&logo=Django%20REST%20Framework)](https://www.django-rest-framework.org/)
+[![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-464646?style=flat-square&logo=PostgreSQL)](https://www.postgresql.org/)
+[![Nginx](https://img.shields.io/badge/-NGINX-464646?style=flat-square&logo=NGINX)](https://nginx.org/ru/)
+[![gunicorn](https://img.shields.io/badge/-gunicorn-464646?style=flat-square&logo=gunicorn)](https://gunicorn.org/)
+[![docker](https://img.shields.io/badge/-Docker-464646?style=flat-square&logo=docker)](https://www.docker.com/)
+[![GitHub%20Actions](https://img.shields.io/badge/-GitHub%20Actions-464646?style=flat-square&logo=GitHub%20actions)](https://github.com/features/actions)
+[![Yandex.Cloud](https://img.shields.io/badge/-Yandex.Cloud-464646?style=flat-square&logo=Yandex.Cloud)](https://cloud.yandex.ru/)
+
 # Проект Foodgram
 Проект Foodgram - это сайт «Продуктовый помощник». На этом сервисе пользователи могут регистрироваться, публиковать рецепты, подписываться на публикации других пользователей, добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать сводный список продуктов, необходимых для приготовления одного или нескольких выбранных блюд.
 
+Проект запущен и доступен по адресу http://62.84.119.90/recipes
 # Технологии
 В проекте применяются:
-- **Python 3**
+- **Python 3.7.9**
 - **Django REST Framework**
 - **Djoser**
 - **PostgreSQL**
@@ -42,9 +55,9 @@ DB_HOST=db # название сервиса (контейнера)
 DB_PORT=5432 # порт для подключения к БД
 ```
 
-Выполните команду `docker-compose up -d` для запуска сервера разработки.
+Выполните команду `docker-compose up -d --build` для запуска сервера разработки.
 
-Выполните миграции: `docker-compose exec web python manage.py migrate --noinput`.
+Выполните миграции: `docker-compose exec web python manage.py migrate`.
 
 Для заполнения базы ингредиентами (не обязательно) выполните команды:
 ```
@@ -64,7 +77,7 @@ docker-compose exec web python manage.py load_data
 
 Выполните _collectstatic_: 
 
-`docker-compose exec web python manage.py collectstatic --no-input`.
+`docker-compose exec web python manage.py collectstatic --noinput`.
 
 Проект запущен и доступен по адресу [localhost](http://127.0.0.1/).
 
@@ -74,7 +87,6 @@ docker-compose exec web python manage.py load_data
 
 # CI/CD
 Для проекта Foodgram настроен _workflow_ со следующими инструкциями:
-- автоматический запуск тестов
-- обновление образов на Docker Hub
-- автоматический деплой на боевой сервер при пуше в главную ветку main
-- отправка уведомления в Telegram.
+- автоматический запуск тестов (flake8)
+- обновление образов на DockerHub
+- автоматический деплой на боевой сервер при пуше в главную ветку master

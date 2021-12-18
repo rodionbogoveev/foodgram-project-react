@@ -1,6 +1,5 @@
-from drf_extra_fields.fields import Base64ImageField
-
 from django.shortcuts import get_object_or_404
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
@@ -125,6 +124,13 @@ class RecipeSerializer(ReadOnlyRecipeSerializer):
             raise ValidationError('Укажите хотя бы один ингредиент.')
         for ingredient in ingredients:
             get_object_or_404(Ingredient, pk=ingredient['id'])
+            try:
+                int(ingredient['amount'])
+            except ValueError:
+                raise ValidationError(
+                    'Количество ингредиента должно быть записано только в '
+                    'виде числа.'
+                )
             if int(ingredient['amount']) < 0:
                 raise ValidationError('Минимальное количество игредиента - 0.')
             if ingredient in ingredients_list:

@@ -10,9 +10,9 @@ services:
       - .env
 
   web:
-    image: rodionbogoveev/foodgram_web:v1.0
+    image: rodionbogoveev/foodgram_web:v1.0 # Использовать при деплое на сервер
     restart: always
-    # build: ../backend
+    # build: ../backend # Использовать при локальном тестировании
     volumes:
       - static_value:/code/static/
       - media_value:/code/media/

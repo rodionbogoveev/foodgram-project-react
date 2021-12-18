@@ -22,6 +22,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('author', 'name', 'tags')
     ordering = ('-id',)
     search_fields = ('name',)
+    autocomplete_fields = ('author',)
 
     def favorite_count(self, obj):
         return Favorite.objects.filter(recipe=obj).count()

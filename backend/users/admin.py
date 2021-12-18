@@ -25,6 +25,7 @@ class UserAdmin(admin.ModelAdmin):
 class FollowAdmin(admin.ModelAdmin):
     list_display = ('user', 'follower')
     list_filter = ('user', 'follower')
+    autocomplete_fields = ('user', 'follower',)
 
 
 admin.site.register(User, UserAdmin)
